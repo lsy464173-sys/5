@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6b4f35">
+<title>历史连连看｜九上第一单元</title>
+<style>
+  :root{
+    --ink:#3d2b1f;
+    --paper:#fff8e8;
+    --paper2:#f6ead0;
+    --brown:#76502f;
+    --gold:#d79a32;
+    --green:#4f7c55;
+    --red:#c75a4b;
+    --shadow:0 10px 25px rgba(62,42,24,.16);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",Arial,sans-serif;color:var(--ink)}
+  body{
+    background:
+      radial-gradient(circle at 15% 15%, rgba(215,154,50,.16), transparent 26%),
+      radial-gradient(circle at 85% 80%, rgba(79,124,85,.13), transparent 25%),
+      linear-gradient(135deg,#f6e7c7,#fffaf0 45%,#ead9b9);
+    overflow-x:hidden;
+  }
+  button{font:inherit}
+  .screen{min-height:100vh;display:none;align-items:center;justify-content:center;padding:24px}
+  .screen.active{display:flex}
+
+  /* ===== 首页 ===== */
+  .cover{
+    width:min(960px,100%);
+    min-height:min(720px,calc(100vh - 48px));
+    position:relative;overflow:hidden;
+    border:8px solid rgba(118,80,47,.22);
+    border-radius:36px;
+    background:
+      linear-gradient(rgba(255,248,232,.87),rgba(255,248,232,.94)),
+      repeating-linear-gradient(0deg,rgba(118,80,47,.035) 0 2px,transparent 2px 6px);
+    box-shadow:0 24px 60px rgba(67,45,25,.2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;
+  }
+  .cover::before,.cover::after{
+    content:"";position:absolute;border:3px solid rgba(118,80,47,.22);border-radius:50%;
+    width:260px;height:260px;pointer-events:none;
+  }
+  .cover::before{left:-130px;top:-110px}
+  .cover::after{right:-130px;bottom:-110px}
+  .ornament{font-size:42px;letter-spacing:18px;margin-bottom:12px;filter:sepia(.35)}
+  .title{
+    font-size:clamp(52px,8vw,88px);
+    line-height:1.05;
+    font-weight:900;
+    letter-spacing:8px;
+    color:#71451f;
+    text-shadow:0 5px 0 #e8c37d,0 8px 18px rgba(88,55,24,.18);
+  }
+  .subtitle{font-size:clamp(17px,2.6vw,25px);font-weight:800;margin-top:18px;color:#6c5a45}
+  .tag{
+    margin-top:20px;padding:8px 18px;border-radius:999px;
+    background:#ead5ad;color:#76502f;font-weight:800;
+  }
+  .start-btn,.again-btn{
+    margin-top:34px;border:0;cursor:pointer;
+    padding:16px 52px;border-radius:999px;
+    color:#fff;background:linear-gradient(135deg,#8c5b2f,#c58b38);
+    box-shadow:0 9px 0 #70471f,0 14px 25px rgba(85,53,25,.2);
+    font-size:22px;font-weight:900;letter-spacing:2px;
+    transition:.15s transform;
+  }
+  .start-btn:active,.again-btn:active{transform:translateY(5px);box-shadow:0 4px 0 #70471f,0 8px 15px rgba(85,53,25,.18)}
+  .tips{margin-top:26px;max-width:660px;font-size:14px;line-height:1.8;color:#806f59}
+  .history-decor{
+    position:absolute;inset:auto 0 0;display:flex;justify-content:space-around;align-items:end;
+    color:rgba(118,80,47,.14);font-size:90px;pointer-events:none
+  }
+
+  /* ===== 游戏页 ===== */
+  .game-wrap{width:min(1100px,100%);margin:auto}
+  .topbar{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    font-size:clamp(24px,4vw,38px);font-weight:900;color:#6c451f;
+    margin-right:auto;
+  }
+  .timer{
+    min-width:170px;padding:10px 18px;border-radius:18px;
+    background:#fff9eb;border:2px solid #d9bd87;box-shadow:var(--shadow);
+    text-align:center;font-weight:900;color:#6b4521;
+  }
+  .timer strong{font-size:25px;margin-left:7px}
+  .progress{
+    padding:10px 15px;border-radius:18px;background:#f0dfbd;
+    font-weight:800;color:#725737
+  }
+  .game-card{
+    background:rgba(255,250,239,.9);border:2px solid rgba(118,80,47,.22);
+    border-radius:28px;padding:18px;box-shadow:var(--shadow);
+  }
+  .hint{
+    text-align:center;margin:2px 0 14px;color:#7b6952;font-size:14px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:12px;
+  }
+  .card{
+    min-height:108px;border:3px solid rgba(255,255,255,.78);
+    border-radius:20px;padding:13px 9px;
+    color:#3d2b1f;font-weight:900;font-size:clamp(15px,1.55vw,19px);
+    line-height:1.35;cursor:pointer;
+    box-shadow:0 6px 0 rgba(70,48,30,.13),0 8px 16px rgba(70,48,30,.08);
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    user-select:none;-webkit-tap-highlight-color:transparent;
+    transition:transform .16s,box-shadow .16s,filter .16s,opacity .2s;
+    position:relative;overflow:hidden;
+  }
+  .card::after{
+    content:"✦";position:absolute;right:8px;top:5px;font-size:12px;opacity:.35
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 9px 0 rgba(70,48,30,.12),0 12px 18px rgba(70,48,30,.11)}
+  .card.selected{outline:4px solid rgba(112,76,35,.32);transform:scale(1.025)}
+  .card.matched{opacity:0;transform:scale(.65);pointer-events:none}
+  .card.wrong{animation:shake .34s}
+  .card.correct{animation:pop .34s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(.65);opacity:0}}
+  .footer-note{text-align:center;color:#8b775f;font-size:12px;margin-top:12px}
+
+  /* ===== 结果页 ===== */
+  .result{
+    width:min(720px,100%);padding:44px 26px;text-align:center;
+    border-radius:34px;background:rgba(255,249,235,.96);
+    border:4px solid rgba(118,80,47,.18);box-shadow:0 25px 60px rgba(67,45,25,.2);
+  }
+  .trophy{font-size:74px}
+  .result h1{font-size:clamp(34px,7vw,60px);margin:8px 0;color:#70461f}
+  .result p{color:#7c6b55}
+  .final-time{
+    display:inline-flex;flex-direction:column;gap:5px;
+    margin:22px 0;padding:18px 38px;border-radius:24px;
+    background:#f1dfbb;border:2px solid #d8b873;
+  }
+  .final-time span{font-size:14px;color:#806845}
+  .final-time strong{font-size:42px;color:#68411d}
+  .small-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .secondary{
+    margin-top:34px;padding:13px 28px;border-radius:999px;border:2px solid #a27a47;
+    background:#fffaf0;color:#70461f;font-weight:900;cursor:pointer;
+  }
+
+  /* ===== 提示 ===== */
+  .toast{
+    position:fixed;left:50%;top:18%;transform:translate(-50%,-20px) scale(.95);
+    opacity:0;pointer-events:none;z-index:20;
+    padding:13px 22px;border-radius:999px;font-weight:900;font-size:17px;
+    background:#fff8e8;box-shadow:0 12px 30px rgba(60,40,22,.22);
+    transition:.22s;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+  .toast.bad{color:#a63c31;border:2px solid #e5a49c}
+  .toast.good{color:#3d7147;border:2px solid #a8c9a9}
+
+  @media (max-width:800px){
+    .screen{padding:12px}
+    .cover{min-height:calc(100vh - 24px);border-width:5px;border-radius:26px}
+    .ornament{font-size:28px;letter-spacing:10px}
+    .title{letter-spacing:4px}
+    .start-btn,.again-btn{font-size:19px;padding:14px 42px}
+    .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .card{min-height:104px;border-radius:16px;padding:10px 7px;font-size:15px}
+    .game-card{padding:10px;border-radius:20px}
+    .brand{width:100%;margin:0;text-align:center}
+    .timer{flex:1;min-width:0}
+    .progress{flex:1;text-align:center}
+  }
+  @media (max-width:430px){
+    .grid{gap:7px}
+    .card{min-height:92px;font-size:13px;border-width:2px}
+    .timer{padding:8px 10px}.timer strong{font-size:20px}
+    .progress{padding:8px 10px;font-size:13px}
+    .hint{font-size:12px}
+  }
+</style>
+</head>
+<body>
+
+<section id="home" class="screen active">
+  <div class="cover">
+    <div class="ornament">𓂀　𒀭　☸</div>
+    <div class="title">历史连连看</div>
+    <div class="subtitle">九年级上册 · 第一单元「文明的产生和古代亚非文明」</div>
+    <div class="tag">古代埃及 · 两河流域 · 古代印度</div>
+    <button class="start-btn" id="startBtn">开始游戏</button>
+    <div class="tips">
+      找到属于同一组的两个知识点即可消除。<br>
+      配对错误会增加 <b>5 秒</b>；进入游戏后计时立即开始。
+    </div>
+    <div class="history-decor"><span>𓂀</span><span>𒀭</span><span>☸</span></div>
+  </div>
+</section>
+
+<section id="game" class="screen">
+  <div class="game-wrap">
+    <div class="topbar">
+      <div class="brand">历史连连看</div>
+      <div class="timer">⏱ 用时 <strong id="timer">00:00</strong></div>
+      <div class="progress">剩余 <b id="leftCount">24</b> 张</div>
+    </div>
+    <div class="game-card">
+      <div class="hint">点击两个相关知识点进行配对；正确后自动消除，错误则 +5 秒。</div>
+      <div id="grid" class="grid"></div>
+      <div class="footer-note">内容依据九年级上册第一单元相关教材知识设计</div>
+    </div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="result">
+    <div class="trophy">🏺</div>
+    <h1>全部消除成功！</h1>
+    <p>恭喜你完成第一单元知识连连看</p>
+    <div class="final-time">
+      <span>本局总计时</span>
+      <strong id="finalTime">00:00</strong>
+    </div>
+    <div class="small-actions">
+      <button class="again-btn" id="againBtn">再来一局</button>
+      <button class="secondary" id="homeBtn">返回首页</button>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/*
+  第一单元配对设计：
+  1 金字塔 ↔ 象形文字（古代埃及）
+  2 尼罗河 ↔ “尼罗河的赠礼”（古代埃及）
+  3 太阳历 ↔ 一年365天、分12个月（古代埃及）
+  4 罗塞塔石碑 ↔ 刻有象形文字和古希腊语铭文（古代埃及）
+  5 楔形文字 ↔ 古代西亚地区书写多种语言的文字（两河流域）
+  6 《汉谟拉比法典》 ↔ 迄今已知世界上第一部较为完备的成文法典（两河流域）
+  7 《吉尔伽美什史诗》 ↔ 古代两河流域文学的代表作品（两河流域）
+  8 60进制 ↔ 古代两河流域人的发明（两河流域）
+  9 种姓制度 ↔ 严格的社会等级制度（古代印度）
+ 10 佛教 ↔ 早期佛教反对婆罗门特权，提出“众生平等”（古代印度）
+ 11 《摩诃婆罗多》《罗摩衍那》 ↔ 古代印度两大史诗（古代印度）
+ 12 数字符号系统 ↔ 包括“0”在内的数字符号系统（古代印度）
+
+  每一对固定占据两个相距12个位置的卡槽。
+  因此在2～8列的常见屏幕布局下，配对卡不会上下/左右相邻。
+*/
+
+const pairs = [
+  {id:1, civ:"埃及", a:"金字塔", b:"象形文字"},
+  {id:2, civ:"埃及", a:"尼罗河", b:"“尼罗河的赠礼”"},
+  {id:3, civ:"埃及", a:"太阳历", b:"一年365天、分12个月"},
+  {id:4, civ:"埃及", a:"罗塞塔石碑", b:"刻有象形文字和古希腊语铭文"},
+  {id:5, civ:"两河", a:"楔形文字", b:"古代西亚地区书写多种语言的文字"},
+  {id:6, civ:"两河", a:"《汉谟拉比法典》", b:"迄今已知世界上第一部较为完备的成文法典"},
+  {id:7, civ:"两河", a:"《吉尔伽美什史诗》", b:"古代两河流域文学的代表作品"},
+  {id:8, civ:"两河", a:"60进制", b:"古代两河流域人的发明"},
+  {id:9, civ:"印度", a:"种姓制度", b:"严格的社会等级制度"},
+  {id:10, civ:"印度", a:"佛教", b:"早期佛教反对婆罗门特权，提出“众生平等”"},
+  {id:11, civ:"印度", a:"《摩诃婆罗多》《罗摩衍那》", b:"古代印度两大史诗"},
+  {id:12, civ:"印度", a:"数字符号系统", b:"包括“0”在内的数字符号系统"}
+];
+
+const colors = [
+  "#F7C98B","#A8D8B9","#B7C9F2","#E8B4C8",
+  "#F4D35E","#B8A7D9","#9ED8E5","#D8B08C",
+  "#C6D89B","#F1A7A7","#B6C7E8","#D9B7E8",
+  "#F3B982","#A7D5C0","#C5B8F2","#E7C6A5",
+  "#A9DDE5","#E3B1B1","#D0DFA8","#D5BCE8",
+  "#F4C98B","#AFCFE5","#E4C1D1","#BCD9AE"
+];
+
+const home = document.getElementById("home");
+const game = document.getElementById("game");
+const result = document.getElementById("result");
+const grid = document.getElementById("grid");
+const timerEl = document.getElementById("timer");
+const leftCountEl = document.getElementById("leftCount");
+const finalTimeEl = document.getElementById("finalTime");
+const toast = document.getElementById("toast");
+
+let deck = [];
+let first = null;
+let lock = false;
+let matched = 0;
+let startAt = 0;
+let penalty = 0;
+let timerId = null;
+let running = false;
+
+function showScreen(el){
+  [home,game,result].forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+}
+
+function fmt(sec){
+  sec = Math.max(0, Math.floor(sec));
+  const m = String(Math.floor(sec/60)).padStart(2,"0");
+  const s = String(sec%60).padStart(2,"0");
+  return `${m}:${s}`;
+}
+
+function elapsed(){
+  return Math.floor((Date.now() - startAt)/1000) + penalty;
+}
+
+function updateTimer(){
+  timerEl.textContent = fmt(elapsed());
+}
+
+function startClock(){
+  clearInterval(timerId);
+  running = true;
+  startAt = Date.now();
+  penalty = 0;
+  timerId = setInterval(updateTimer,250);
+  updateTimer();
+}
+
+function stopClock(){
+  running = false;
+  clearInterval(timerId);
+  timerId = null;
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/*
+  24个槽位分成前12个和后12个。
+  每个配对的两张卡始终相隔12个槽位，
+  因而不会出现常见网格中的直接上下/左右相邻。
+*/
+function buildDeck(){
+  const pairOrder = shuffle(pairs.map(p=>p.id));
+  const top = pairOrder.slice();
+  const bottom = shuffle(pairOrder.slice());
+  // bottom仍需要与top一一对应，不能独立shuffle
+  // 用随机排列的pair顺序作为两半的槽位，再让同一pair落在同一列对应位置。
+  const ids = shuffle(pairs.map(p=>p.id));
+  const result = new Array(24);
+  ids.forEach((id, i)=>{
+    const p = pairs.find(x=>x.id===id);
+    const reverse = Math.random() > .5;
+    result[i] = {
+      pairId:id, text:reverse?p.b:p.a, civ:p.civ, color:colors[i], side:reverse?"b":"a"
+    };
+    result[i+12] = {
+      pairId:id, text:reverse?p.a:p.b, civ:p.civ, color:colors[i+12], side:reverse?"a":"b"
+    };
+  });
+  return result;
+}
+
+function render(){
+  grid.innerHTML="";
+  deck.forEach((item,index)=>{
+    const card=document.createElement("button");
+    card.className="card";
+    card.type="button";
+    card.dataset.index=index;
+    card.dataset.pair=item.pairId;
+    card.style.background=item.color;
+    card.innerHTML=item.text;
+    card.addEventListener("click",()=>pick(card,index));
+    grid.appendChild(card);
+  });
+  leftCountEl.textContent=24;
+}
+
+function toastMsg(text,type){
+  toast.textContent=text;
+  toast.className="toast show "+type;
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>toast.className="toast",900);
+}
+
+function pick(card,index){
+  if(!running || lock || card.classList.contains("matched") || card===first) return;
+
+  card.classList.add("selected");
+
+  if(!first){
+    first=card;
+    return;
+  }
+
+  const firstIndex=Number(first.dataset.index);
+  const same=deck[firstIndex].pairId===deck[index].pairId;
+
+  if(same){
+    lock=true;
+    first.classList.remove("selected");
+    card.classList.remove("selected");
+    first.classList.add("correct");
+    card.classList.add("correct");
+    setTimeout(()=>{
+      first.classList.add("matched");
+      card.classList.add("matched");
+      matched+=2;
+      leftCountEl.textContent=24-matched;
+      first=null;
+      lock=false;
+      if(matched===24) finish();
+    },300);
+    toastMsg("配对正确！","good");
+  }else{
+    lock=true;
+    penalty+=5;
+    first.classList.add("wrong");
+    card.classList.add("wrong");
+    toastMsg("配对错误！时间 +5 秒","bad");
+    setTimeout(()=>{
+      first.classList.remove("selected","wrong");
+      card.classList.remove("selected","wrong");
+      first=null;
+      lock=false;
+    },520);
+  }
+}
+
+function startGame(){
+  matched=0;
+  first=null;
+  lock=false;
+  deck=buildDeck();
+  render();
+  showScreen(game);
+  // 进入游戏界面后立即计时
+  startClock();
+}
+
+function finish(){
+  stopClock();
+  const total=elapsed();
+  finalTimeEl.textContent=fmt(total);
+  setTimeout(()=>showScreen(result),350);
+}
+
+document.getElementById("startBtn").addEventListener("click",startGame);
+document.getElementById("againBtn").addEventListener("click",startGame);
+document.getElementById("homeBtn").addEventListener("click",()=>{
+  stopClock();
+  showScreen(home);
+});
+
+// 防止手机长按选中文字影响游戏体验
+document.addEventListener("contextmenu",e=>{
+  if(e.target.closest(".card")) e.preventDefault();
+});
+</script>
+</body>
+</html>
